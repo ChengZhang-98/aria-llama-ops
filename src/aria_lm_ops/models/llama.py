@@ -69,22 +69,17 @@ def flash_attn2_head_gemv(q, k, v, qk_scale, s_q, s_kv, h_qkv, Bc, Tc):
         v_j = v[:, j * Bc : (j + 1) * Bc, :]  # [b, Bc, h_qkv]
         s_j = q @ k_j.transpose(1, 2) * qk_scale  # Q @ Kj^T, [b, s_q, Bc]
 
-        if j == 0:
-            m = s_j.max().cpu().item()  # find global row max
-            p = torch.exp(s_j - m)
-            l = p.sum().cpu().item()
-            o = p @ v_j
-        else:
-            rowmax_s_j = s_j.max().cpu().item()  # rowmax(Sj)
-            m_new = max(m, rowmax_s_j)  # update global row max
-            s_j_shifted = s_j - m_new
-            p = torch.exp(s_j_shifted)  # exp(Sj - rowmax(Sj))
-            m_res = m - m_new  # m(1) - m(2)
-            l_scale = math.exp(m_res)  # exp(m(1) - m(2))
-            l = l_scale * l + p.sum().cpu().item()
-            o_scale = math.exp(m_res)
-            o = o_scale * o + p @ v_j
-            m = m_new
+        rowmax_s_j = s_j.max().cpu().item()  # rowmax(Sj)
+        m_new = max(m, rowmax_s_j)  # update global row max
+        s_j_shifted = s_j - m_new
+        p = torch.exp(s_j_shifted)  # exp(Sj - rowmax(Sj))
+        m_res = m - m_new  # m(1) - m(2)
+        m = m_new
+        l_scale = math.exp(m_res)  # exp(m(1) - m(2))
+        p_row_sum = p.sum().cpu().item()
+        l = l_scale * l + p_row_sum
+        o_scale = math.exp(m_res)
+        o = o_scale * o + p @ v_j
 
     o = 1 / l * o
 

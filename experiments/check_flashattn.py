@@ -2,7 +2,7 @@ import math
 import random
 
 import torch
-from transformers.modeling_flash_attention_utils import _flash_attention_forward
+from transformers.modeling_flash_attention_utils import _flash_attention_forward as _flash_attention_forward_ref
 
 from aria_lm_ops.config import CheckConfig
 from aria_lm_ops.utils.model_shortcut import load_tinyllama_cfg, load_llama2_7b_cfg, load_llama3_8b_cfg
@@ -31,7 +31,7 @@ def check_flash_attn2_gemv():
             k = torch.randn(b, s_kv, num_kv_heads, h_qkv, dtype=torch.bfloat16).cuda()
             v = torch.randn(b, s_kv, num_kv_heads, h_qkv, dtype=torch.bfloat16).cuda()
 
-            o_ref = _flash_attention_forward(
+            o_ref = _flash_attention_forward_ref(
                 q,
                 k,
                 v,
