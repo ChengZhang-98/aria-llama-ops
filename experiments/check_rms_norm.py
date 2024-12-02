@@ -2,10 +2,8 @@ import torch
 from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
 from aria_lm_ops.models.llama import rms_norm
-from aria_lm_ops.utils.toy_tinyllama import load_tinyllama_cfg, load_tinyllama_ckpt
-
-
-_CHECK_N_TIMES = 10
+from aria_lm_ops.utils.model_shortcut import load_tinyllama_cfg, load_tinyllama_ckpt
+from aria_lm_ops.config import CheckConfig
 
 
 @torch.no_grad()
@@ -28,13 +26,13 @@ def check_rms_norm():
     w = w.cuda()
     rms_ref.cuda()
 
-    for _ in range(_CHECK_N_TIMES):
+    for _ in range(CheckConfig.check_n_times):
         out = rms_norm(x, w, s, h, var_eps)
         out_ref = rms_ref(x)
         assert torch.allclose(out, out_ref, atol=1e-5), "Mismatch between custom and reference RMSNorm"
         x = torch.randn(b, s, h).cuda()
 
-    print("RMSNorm check passed")
+    print(f"{CheckConfig.check_n_times} RMSNorm checks passed")
     return True
 
 

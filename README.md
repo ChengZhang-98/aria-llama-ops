@@ -1,6 +1,9 @@
-# AREA Launage Models
+# ARIA Launage Models
 
-## Tiny-Llama
+
+
+## Example Models
+### Tiny-Llama
 
 | Weight Name | Shape |
 | --- | --- |
